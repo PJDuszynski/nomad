@@ -1249,7 +1249,6 @@ func (s *Server) setupRpcServer(server *rpc.Server, ctx *RPCContext) error {
 	}
 
 	// Register the static handlers
-	server.Register(s.staticEndpoints.ACL)
 	server.Register(s.staticEndpoints.Job)
 	server.Register(s.staticEndpoints.CSIVolume)
 	server.Register(s.staticEndpoints.CSIPlugin)
@@ -1270,6 +1269,7 @@ func (s *Server) setupRpcServer(server *rpc.Server, ctx *RPCContext) error {
 	server.Register(s.staticEndpoints.Variables)
 
 	// Create new dynamic endpoints and add them to the RPC server.
+	acl := &ACL{srv: s, ctx: ctx, logger: s.logger.Named("acl")}
 	alloc := &Alloc{srv: s, ctx: ctx, logger: s.logger.Named("alloc")}
 	deployment := &Deployment{srv: s, ctx: ctx, logger: s.logger.Named("deployment")}
 	eval := &Eval{srv: s, ctx: ctx, logger: s.logger.Named("eval")}
@@ -1279,6 +1279,7 @@ func (s *Server) setupRpcServer(server *rpc.Server, ctx *RPCContext) error {
 	keyringReg := &Keyring{srv: s, ctx: ctx, logger: s.logger.Named("keyring"), encrypter: s.encrypter}
 
 	// Register the dynamic endpoints
+	server.Register(acl)
 	server.Register(alloc)
 	server.Register(deployment)
 	server.Register(eval)

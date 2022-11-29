@@ -35,6 +35,7 @@ const (
 // ACL endpoint is used for manipulating ACL tokens and policies
 type ACL struct {
 	srv    *Server
+	ctx    *RPCContext
 	logger log.Logger
 }
 
@@ -1941,4 +1942,21 @@ func (a *ACL) GetAuthMethods(
 			)
 		}},
 	)
+}
+
+func (a *ACL) WhoAmI(args *structs.GenericRequest, reply *structs.ACLWhoAmIResponse) error {
+
+	identity, err := a.srv.Authenticate(a.ctx, args.AuthToken)
+	if err != nil {
+		return err
+	}
+	args.SetIdentity(identity)
+
+	if done, err := a.srv.forward("ACL.WhoAmI", args, args, reply); done {
+		return err
+	}
+	defer metrics.MeasureSince([]string{"nomad", "acl", "whoami"}, time.Now())
+
+	reply.Identity = args.GetIdentity()
+	return nil
 }
