@@ -14,11 +14,19 @@ import (
 // Namespace endpoint is used for manipulating namespaces
 type Namespace struct {
 	srv *Server
+	ctx *RPCContext
 }
 
 // UpsertNamespaces is used to upsert a set of namespaces
 func (n *Namespace) UpsertNamespaces(args *structs.NamespaceUpsertRequest,
 	reply *structs.GenericResponse) error {
+
+	identity, err := n.srv.Authenticate(n.ctx, args.AuthToken)
+	if err != nil {
+		return err
+	}
+	args.SetIdentity(identity)
+
 	args.Region = n.srv.config.AuthoritativeRegion
 	if done, err := n.srv.forward("Namespace.UpsertNamespaces", args, args, reply); done {
 		return err
@@ -26,7 +34,7 @@ func (n *Namespace) UpsertNamespaces(args *structs.NamespaceUpsertRequest,
 	defer metrics.MeasureSince([]string{"nomad", "namespace", "upsert_namespaces"}, time.Now())
 
 	// Check management permissions
-	if aclObj, err := n.srv.ResolveToken(args.AuthToken); err != nil {
+	if aclObj, err := n.srv.ResolveACL(args.GetIdentity().GetACLToken()); err != nil {
 		return err
 	} else if aclObj != nil && !aclObj.IsManagement() {
 		return structs.ErrPermissionDenied

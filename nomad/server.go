@@ -1216,7 +1216,7 @@ func (s *Server) setupRpcServer(server *rpc.Server, ctx *RPCContext) error {
 		s.staticEndpoints.Status = &Status{srv: s, logger: s.logger.Named("status")}
 		s.staticEndpoints.System = &System{srv: s, logger: s.logger.Named("system")}
 		s.staticEndpoints.Search = &Search{srv: s, logger: s.logger.Named("search")}
-		s.staticEndpoints.Namespace = &Namespace{srv: s}
+		s.staticEndpoints.Namespace = &Namespace{srv: s, ctx: ctx}
 		s.staticEndpoints.Variables = &Variables{srv: s, logger: s.logger.Named("variables"), encrypter: s.encrypter}
 		s.staticEndpoints.Keyring = &Keyring{srv: s, logger: s.logger.Named("keyring"), encrypter: s.encrypter}
 
