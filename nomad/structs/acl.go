@@ -785,3 +785,53 @@ type ACLAuthMethodDeleteRequest struct {
 type ACLAuthMethodDeleteResponse struct {
 	WriteMeta
 }
+
+// ACLOIDCAuthURLRequest is the request to make when starting the OIDC
+// authentication login flow.
+type ACLOIDCAuthURLRequest struct {
+
+	// AuthMethodName is the OIDC auth-method to use. If the user did not
+	// specify a method, Nomad should look for a default method held within
+	// state.
+	AuthMethodName string
+
+	// RedirectURI is the URL that authorization should redirect to.
+	RedirectURI string
+
+	// ClientNonce is a randomly generated string to prevent replay attacks. It
+	// is up to the client to generate this and Go integrations should use the
+	// oidc.NewID function within the hashicorp/cap library. This must then be
+	// passed back to ACLOIDCCallbackRequest.
+	ClientNonce string
+}
+
+// ACLOIDCAuthURLResponse is the response when starting the OIDC authentication
+// login flow.
+type ACLOIDCAuthURLResponse struct {
+
+	// AuthURL is URL to begin authorization and is where the user logging in
+	// should go.
+	AuthURL string
+}
+
+// ACLOIDCCallbackRequest is the request object to begin completing the OIDC
+// auth cycle after receiving the callback from the OIDC provider.
+type ACLOIDCCallbackRequest struct {
+
+	// AuthMethodName is the name of the auth method being used to login via
+	// OIDC. This will match ACLOIDCAuthURLRequest.AuthMethodName if it was
+	// specified, or be populated via looking up the default method.
+
+	// ClientNonce, State, and Code are provided from the parameters given to
+	// the redirect URL.
+	ClientNonce string
+	State       string
+	Code        string
+}
+
+// ACLOIDCCallbackResponse is the response when the OIDC auth flow has been
+// completed successfully.
+type ACLOIDCCallbackResponse struct {
+	ACLToken *ACLToken
+	WriteMeta
+}

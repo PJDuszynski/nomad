@@ -16,6 +16,7 @@ import (
 	policy "github.com/hashicorp/nomad/acl"
 	"github.com/hashicorp/nomad/helper"
 	"github.com/hashicorp/nomad/helper/uuid"
+	"github.com/hashicorp/nomad/nomad/auth/oidc"
 	"github.com/hashicorp/nomad/nomad/state"
 	"github.com/hashicorp/nomad/nomad/state/paginator"
 	"github.com/hashicorp/nomad/nomad/structs"
@@ -32,10 +33,17 @@ const (
 	aclBootstrapReset = "acl-bootstrap-reset"
 )
 
-// ACL endpoint is used for manipulating ACL tokens and policies
+// ACL endpoint is used for manipulating ACL Tokens, Policies, Roles, and
+// AuthMethods. It is also used for gain an ACL Token via SSO methods such as
+// OIDC.
 type ACL struct {
 	srv    *Server
 	logger log.Logger
+
+	// oidcProviderCache is a cache of OIDC providers as defined by the
+	// hashicorp/cap library. When performing an OIDC login flow, this cache
+	// should be used to obtain a provider from an auth-method.
+	oidcProviderCache *oidc.ProviderCache
 }
 
 // UpsertPolicies is used to create or update a set of policies
@@ -1941,4 +1949,48 @@ func (a *ACL) GetAuthMethods(
 			)
 		}},
 	)
+}
+
+func (a *ACL) OIDCAuthURL(args *structs.ACLOIDCAuthURLRequest, reply *structs.ACLOIDCAuthURLResponse) error {
+
+	// The OIDC flow can only be used when the Nomad cluster has ACL enabled.
+	if !a.srv.config.ACLEnabled {
+		return aclDisabled
+	}
+
+	// Forward to regional leader?
+	// Validate request object.
+	// Lookup the AuthMethod from state.
+	// Check we find an AuthMethod as named.
+	// Forward the request to the authoritative region if auth method token locality is global.
+	// Get the OIDC provider from the cache.
+	// Build the OIDC request opts and request.
+	// Generate a context with a deadline.
+	// Call the OIDC provider for an AuthURL.
+	// Handle OIDC error and response, simples.
+
+	return nil
+}
+
+func (a *ACL) OIDCCallback(args *structs.ACLOIDCCallbackRequest, reply *structs.ACLOIDCCallbackResponse) error {
+
+	// The OIDC flow can only be used when the Nomad cluster has ACL enabled.
+	if !a.srv.config.ACLEnabled {
+		return aclDisabled
+	}
+
+	// Forward to regional leader?
+	// Validate request object.
+	// Lookup the AuthMethod from state.
+	// Check we find an AuthMethod as named.
+	// Forward the request to the authoritative region if auth method token locality is global.
+	// Get the OIDC provider from the cache.
+	// Build the OIDC request opts and request for token exchange.
+	// Generate a context with a deadline.
+	// Call the OIDC provider for token exchange.
+	// Extract the claims from the returned token.
+	// Generate an ACL token object and call the RPC to create a token.
+	// Return the token.
+
+	return nil
 }
